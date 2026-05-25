@@ -18,3 +18,19 @@ export interface FormatData {
     baseInfo: PageBaseInfo;
     context: string[];
 }
+
+export interface ChapterListItem {
+    chapterTitle: string;
+    chapterUrl: string;
+}
+
+export interface NovelCatalog {
+    novelTitle: string;
+    catalog: ChapterListItem[];
+}
+
+export interface RankNovelItem {
+    title: string;
+    url: string;
+    cover?: string;
+}
