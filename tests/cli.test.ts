@@ -5,12 +5,12 @@ import { parseCliArgs } from '../src/cli';
 
 test('parse browse args with defaults', () => {
   const parsed = parseCliArgs(['node', 'index.ts']);
-  assert.deepEqual(parsed, { mode: 'browse', source: 'rank', action: 'list' });
+  assert.deepEqual(parsed, { mode: 'browse' });
 });
 
-test('parse search args', () => {
-  const parsed = parseCliArgs(['node', 'index.ts', 'browse', '--source', 'search', '--keyword', '魔女', '--pick', '2', '--action', 'book']);
-  assert.deepEqual(parsed, { mode: 'browse', source: 'search', keyword: '魔女', pick: 2, action: 'book' });
+test('parse browse args explicitly', () => {
+  const parsed = parseCliArgs(['node', 'index.ts', 'browse']);
+  assert.deepEqual(parsed, { mode: 'browse' });
 });
 
 test('invalid mode throws', () => {
