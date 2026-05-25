@@ -17,6 +17,11 @@ export interface ScraperDeps {
   logger: Pick<Console, 'log'>;
 }
 
+export interface BrowseNovelItem {
+  title: string;
+  url: string;
+}
+
 export const defaultDeps: ScraperDeps = {
   downloadHtml,
   formatHtml,
@@ -29,11 +34,11 @@ export const defaultDeps: ScraperDeps = {
 };
 
 export const createScraper = (deps: ScraperDeps = defaultDeps) => {
-  const scrapeChapter = async (bookId: number, chapterId: number) => {
+  const scrapeChapterByUrl = async (chapterUrl: string) => {
     const allLines: string[] = [];
     const pages: FormatData[] = [];
     const visited = new Set<string>();
-    let currentUrl = deps.getUrl(bookId, chapterId);
+    let currentUrl = chapterUrl;
 
     for (let i = 0; i < 20 && currentUrl; i += 1) {
       if (visited.has(currentUrl)) break;
@@ -54,12 +59,29 @@ export const createScraper = (deps: ScraperDeps = defaultDeps) => {
     const uniqueLines = allLines.filter((line, idx, arr) => idx === 0 || line !== arr[idx - 1]);
     if (uniqueLines.length === 0) throw new Error('解析失败: 未提取到章节正文');
 
-    const outputName = `${bookId}_${chapterId}`;
+    const outputName = chapterUrl.match(/\/(\d+(_\d+)?)\.html/)?.[1] ?? 'chapter';
     deps.saveAsFile(outputName, uniqueLines.join('\n'), {
       baseInfo: pages[0]?.baseInfo ?? EMPTY_BASE_INFO,
       context: uniqueLines,
     });
     deps.logger.log(`success: 输出 out/${outputName}.txt 与 out/${outputName}.json`);
+  };
+
+  const scrapeBook = async (bookUrl: string) => {
+    const html = await deps.downloadHtml(bookUrl);
+    const catalog = deps.parseNovelCatalog(html);
+    if (catalog.catalog.length === 0) throw new Error('目录解析失败: 未找到章节条目');
+    const fullText: string[] = [];
+    for (let i = 0; i < catalog.catalog.length; i += 1) {
+      const item = catalog.catalog[i];
+      deps.logger.log(`抓取章节 ${i + 1}/${catalog.catalog.length}: ${item.chapterTitle}`);
+      const chapterHtml = await deps.downloadHtml(item.chapterUrl);
+      const formatted = await deps.formatHtml(chapterHtml);
+      if (formatted.context.length > 0) {
+        fullText.push(`## ${item.chapterTitle}`, ...formatted.context, '');
+      }
+    }
+    deps.saveAsFile('book_full', fullText.join('\n'), { baseInfo: EMPTY_BASE_INFO, context: fullText });
   };
 
   const scrapeRank = async (rankUrl: string) => {
@@ -86,5 +108,16 @@ export const createScraper = (deps: ScraperDeps = defaultDeps) => {
     deps.logger.log(`success: 输出 out/catalog.txt 与 out/catalog.json，共 ${catalog.catalog.length} 章`);
   };
 
-  return { scrapeChapter, scrapeRank, scrapeCatalog };
+  const listFromRank = async (rankUrl: string): Promise<BrowseNovelItem[]> => {
+    const html = await deps.downloadHtml(rankUrl);
+    return deps.parseRankList(html).map((item) => ({ title: item.title, url: item.url }));
+  };
+
+  const listFromSearch = async (keyword: string): Promise<BrowseNovelItem[]> => {
+    const url = `https://www.linovelib.com/search.html?searchkey=${encodeURIComponent(keyword)}`;
+    const html = await deps.downloadHtml(url);
+    return deps.parseRankList(html).map((item) => ({ title: item.title, url: item.url }));
+  };
+
+  return { scrapeChapterByUrl, scrapeRank, scrapeCatalog, listFromRank, listFromSearch, scrapeBook };
 };

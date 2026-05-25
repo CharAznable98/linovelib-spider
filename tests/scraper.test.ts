@@ -32,8 +32,8 @@ const makeDeps = (): { deps: ScraperDeps; records: any } => {
 test('scrapeChapter aggregates and deduplicates', async () => {
   const { deps, records } = makeDeps();
   const scraper = createScraper(deps);
-  await scraper.scrapeChapter(1, 2);
-  assert.equal(records.saves[0].f, '1_2');
+  await scraper.scrapeChapterByUrl('u1');
+  assert.equal(records.saves[0].f, 'chapter');
   assert.equal(records.saves[0].c, 'a\nb\nc');
 });
 
@@ -49,4 +49,11 @@ test('scrapeCatalog saves result', async () => {
   const scraper = createScraper(deps);
   await scraper.scrapeCatalog('x');
   assert.equal(records.saves[0].f, 'catalog');
+});
+
+test('listFromRank returns candidates', async () => {
+  const { deps } = makeDeps();
+  const scraper = createScraper(deps);
+  const list = await scraper.listFromRank('x');
+  assert.equal(list[0].title, 't1');
 });

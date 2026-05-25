@@ -3,14 +3,14 @@ import assert from 'node:assert/strict';
 
 import { parseCliArgs } from '../src/cli';
 
-test('parse chapter args with defaults', () => {
+test('parse browse args with defaults', () => {
   const parsed = parseCliArgs(['node', 'index.ts']);
-  assert.deepEqual(parsed, { mode: 'chapter', bookId: 2013, chapterId: 72034 });
+  assert.deepEqual(parsed, { mode: 'browse', source: 'rank', action: 'list' });
 });
 
-test('parse rank args', () => {
-  const parsed = parseCliArgs(['node', 'index.ts', 'rank', 'https://x']);
-  assert.deepEqual(parsed, { mode: 'rank', url: 'https://x' });
+test('parse search args', () => {
+  const parsed = parseCliArgs(['node', 'index.ts', 'browse', '--source', 'search', '--keyword', '魔女', '--pick', '2', '--action', 'book']);
+  assert.deepEqual(parsed, { mode: 'browse', source: 'search', keyword: '魔女', pick: 2, action: 'book' });
 });
 
 test('invalid mode throws', () => {

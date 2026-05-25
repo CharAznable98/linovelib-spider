@@ -7,23 +7,23 @@
 ## 架构说明
 
 - `src/core/scraper.ts`：核心能力层（抓取章节、榜单、目录），通过依赖注入隔离网络/解析/存储实现。
-- `src/cli/index.ts`：CLI 参数解析层（`chapter | rank | catalog`）。
+- `src/cli/index.ts`：CLI 参数解析层（`browse`，面向书单选择）。
 - `src/index.ts`：应用编排入口（CLI -> core）。
 
 ## 使用方式
 
 ```bash
-# 默认抓取 chapter（bookId=2013, chapterId=72034）
+# 默认展示交互式榜单（↑/↓ 选择，Enter 确认）
 npm run start
 
-# 抓取指定章节
-npm run start -- chapter <bookId> <chapterId>
+# 搜索并展示候选列表
+npm run start -- browse --source search --keyword 魔女
 
-# 抓取榜单（可选自定义 URL）
-npm run start -- rank [rankUrl]
+# 从候选列表选择第 2 本并抓取目录（非交互）
+npm run start -- browse --pick 2 --action catalog
 
-# 抓取目录（可选自定义 URL）
-npm run start -- catalog [catalogUrl]
+# 从候选列表选择第 1 本并抓取整本内容
+npm run start -- browse --pick 1 --action book
 ```
 
 运行成功后，文件将输出到 `out/` 目录（`*.txt` 与 `*.json`）。
