@@ -5,7 +5,9 @@
   "main": "index.js",
   "scripts": {
     "start": "ts-node index.ts",
-    "build": "tsc --noEmit"
+    "build": "tsc --noEmit",
+    "compile": "tsc",
+    "test": "npm run compile && node --test dist/tests/*.js"
   },
   "author": "",
   "license": "ISC",
