@@ -1,40 +1,36 @@
 import fs from 'fs';
 import { FormatData } from '../types';
 
+const ensureOutDir = () => {
+    const outDir = `${process.cwd()}/out`;
+    if (!fs.existsSync(outDir)) {
+        fs.mkdirSync(outDir, { recursive: true });
+    }
+};
+
 export const saveAsFile = (
     filename: string,
     context: string,
     formatData: FormatData
 ) => {
-    fs.writeFile(
-        `${process.cwd()}/out/${filename}.txt`,
-        context,
-        { flag: 'w' },
-        (err) => {
-            if (err) {
-                console.error('文件保存失败', filename, err.message);
-            }
-        }
-    );
-    fs.writeFile(
+    ensureOutDir();
+    fs.writeFileSync(`${process.cwd()}/out/${filename}.txt`, context, {
+        flag: 'w',
+    });
+    fs.writeFileSync(
         `${process.cwd()}/out/${filename}.json`,
         JSON.stringify(formatData, null, 2),
-        { flag: 'w' },
-        (err) => {
-            if (err) {
-                console.error('文件保存失败', filename, err.message);
-            }
-        }
+        { flag: 'w' }
     );
 };
 
 export const getHtmlFromFile = (filename: string) =>
-    new Promise<string>((resove, reject) => {
+    new Promise<string>((resolve, reject) => {
         fs.readFile(`${process.cwd()}/out/${filename}.txt`, (err, data) => {
             if (err) {
                 reject(err);
                 return;
             }
-            resove(data.toString());
+            resolve(data.toString());
         });
     });
